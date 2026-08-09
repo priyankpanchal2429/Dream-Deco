@@ -1,6 +1,6 @@
 /**
  * API Client
- * Centralized fetch wrapper communicating with the Express MongoDB Backend.
+ * Centralized fetch wrapper with automatic retry logic for Render server cold starts.
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://dream-deco.onrender.com';
@@ -17,9 +17,31 @@ export class ApiClient {
     return headers;
   }
 
+  /**
+   * Fetch with automatic retry logic to handle server cold-starts smoothly.
+   */
+  private static async fetchWithRetry(
+    url: string,
+    options: RequestInit,
+    retries = 3,
+    delayMs = 1500
+  ): Promise<Response> {
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        const response = await fetch(url, options);
+        return response;
+      } catch (err) {
+        if (attempt === retries - 1) throw err;
+        console.warn(`[ApiClient] Attempt ${attempt + 1} failed. Retrying in ${delayMs}ms...`);
+        await new Promise(res => setTimeout(res, delayMs));
+      }
+    }
+    throw new Error('Network request failed');
+  }
+
   public static async post<T>(endpoint: string, body: Record<string, any>): Promise<T> {
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      const response = await this.fetchWithRetry(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: this.getHeaders(),
         body: JSON.stringify(body),
@@ -35,7 +57,7 @@ export class ApiClient {
 
   public static async get<T>(endpoint: string): Promise<T> {
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      const response = await this.fetchWithRetry(`${API_BASE_URL}${endpoint}`, {
         method: 'GET',
         headers: this.getHeaders(),
       });

@@ -14,7 +14,6 @@ const PORT = process.env.PORT || 5001;
 
 // Connect to MongoDB Atlas
 connectDB().then(async () => {
-  // Pre-seed default admin account if collection is empty
   try {
     const userCount = await User.countDocuments();
     if (userCount === 0) {
@@ -32,20 +31,10 @@ connectDB().then(async () => {
   }
 });
 
-// Configure CORS
-const allowedOrigins = process.env.CLIENT_ORIGIN
-  ? process.env.CLIENT_ORIGIN.split(',').map(o => o.trim())
-  : ['http://localhost:5173', 'http://localhost:3000'];
-
+// Configure CORS (Reflect incoming origin for 100% browser compatibility)
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, Postman)
-      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
-        return callback(null, true);
-      }
-      return callback(null, true); // Fallback allow for development flexibility
-    },
+    origin: true,
     credentials: true,
   })
 );
