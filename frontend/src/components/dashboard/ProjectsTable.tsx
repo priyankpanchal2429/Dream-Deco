@@ -1,30 +1,23 @@
 import React from 'react';
-import { MoreHorizontal, ExternalLink, Calendar, Layers } from 'lucide-react';
+import { MoreHorizontal, ExternalLink, Calendar } from 'lucide-react';
+import type { ProjectDetail } from './ProjectDrawer';
 import './ProjectsTable.css';
 
-export interface ProjectItem {
-  id: string;
-  name: string;
-  roomType: string;
-  status: 'Completed' | 'In Progress' | 'Draft';
-  updatedAt: string;
-  rendersCount: number;
-}
-
 interface ProjectsTableProps {
-  projects: ProjectItem[];
+  projects: ProjectDetail[];
+  onSelectProject?: (project: ProjectDetail) => void;
 }
 
-export const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects }) => {
+export const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects, onSelectProject }) => {
   return (
     <div className="projects-table-container">
       <div className="projects-table-header">
         <div>
-          <h3 className="projects-table-title">Recent Decor Projects</h3>
-          <p className="projects-table-subtitle">Overview of your active 3D room design workspaces</p>
+          <h3 className="projects-table-title">Recent Decor Workspaces</h3>
+          <p className="projects-table-subtitle">Overview of active 3D interior design projects and renderings</p>
         </div>
         <button type="button" className="btn-view-all">
-          View All
+          View All ({projects.length})
         </button>
       </div>
 
@@ -32,7 +25,7 @@ export const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects }) => {
         <table className="projects-table">
           <thead>
             <tr>
-              <th>Project Name</th>
+              <th>Project & 3D Render</th>
               <th>Room Type</th>
               <th>Status</th>
               <th>Renderings</th>
@@ -42,10 +35,10 @@ export const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects }) => {
           </thead>
           <tbody>
             {projects.map(project => (
-              <tr key={project.id}>
+              <tr key={project.id} className="project-row" onClick={() => onSelectProject?.(project)}>
                 <td className="project-name-cell">
-                  <div className="project-icon-box">
-                    <Layers size={16} />
+                  <div className="project-thumb-box">
+                    <img src={project.image} alt={project.name} className="project-row-thumb" />
                   </div>
                   <div>
                     <span className="project-name">{project.name}</span>
@@ -64,9 +57,14 @@ export const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects }) => {
                     <Calendar size={12} /> {project.updatedAt}
                   </span>
                 </td>
-                <td style={{ textAlign: 'right' }}>
+                <td style={{ textAlign: 'right' }} onClick={e => e.stopPropagation()}>
                   <div style={{ display: 'inline-flex', gap: '4px' }}>
-                    <button type="button" className="table-action-btn" title="Open Project">
+                    <button
+                      type="button"
+                      className="table-action-btn"
+                      title="Inspect Project"
+                      onClick={() => onSelectProject?.(project)}
+                    >
                       <ExternalLink size={15} />
                     </button>
                     <button type="button" className="table-action-btn" title="More Options">
