@@ -1,10 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const bcrypt = require('bcryptjs');
 const connectDB = require('./database/db');
 const authRoutes = require('./routes/authRoutes');
-const User = require('./database/User');
 
 // Load Environment Variables
 dotenv.config();
@@ -13,23 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 
 // Connect to MongoDB Atlas
-connectDB().then(async () => {
-  try {
-    const userCount = await User.countDocuments();
-    if (userCount === 0) {
-      const salt = await bcrypt.genSalt(10);
-      const password_hash = await bcrypt.hash('Password123!', salt);
-      await User.create({
-        full_name: 'Admin User',
-        user_id: 'admin',
-        password_hash,
-      });
-      console.log('[Seed] Created default admin account: admin / Password123!');
-    }
-  } catch (seedErr) {
-    console.error('[Seed Error]', seedErr.message);
-  }
-});
+connectDB();
 
 // Configure CORS (Reflect incoming origin for 100% browser compatibility)
 app.use(
