@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
+  FileText,
   FolderKanban,
   Maximize2,
   Bookmark,
@@ -204,11 +205,8 @@ export default function DashboardPage() {
             </span>
             <nav className="space-y-1">
               {[
-                { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-                { id: 'projects', label: 'Projects', icon: FolderKanban },
-                { id: 'canvas', label: 'Room Canvas', icon: Paintbrush },
-                { id: 'catalog', label: 'Decor Catalog', icon: Grid },
-                { id: 'settings', label: 'Settings', icon: Settings },
+                { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
+                { id: 'quotation', label: 'Quotation', icon: FileText, href: '/quotation' },
               ].map(item => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
@@ -216,7 +214,10 @@ export default function DashboardPage() {
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => setActiveTab(item.id)}
+                    onClick={() => {
+                      setActiveTab(item.id);
+                      if (item.href) router.push(item.href);
+                    }}
                     className={`w-full h-10 px-3 rounded-lg text-xs font-semibold flex items-center gap-2.5 transition-all cursor-pointer ${
                       isActive ? 'bg-gray-100 text-gray-900 border border-gray-200 font-bold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
