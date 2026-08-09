@@ -1,0 +1,102 @@
+/* InputField Component Styles */
+.input-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.input-field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.input-field-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.input-field-right-link {
+  font-size: 13px;
+}
+
+.input-field-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.input-field-element {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-main);
+  font-size: 14px;
+  font-family: var(--font-family);
+  outline: none;
+  transition: border-color var(--transition-speed) var(--transition-timing),
+              box-shadow var(--transition-speed) var(--transition-timing);
+}
+
+.input-field-element.has-left-icon {
+  padding-left: 42px;
+}
+
+.input-field-element.has-right-icon {
+  padding-right: 42px;
+}
+
+.input-field-element::placeholder {
+  color: var(--input-placeholder);
+}
+
+.input-field-element:focus {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-input-focus);
+}
+
+.input-field-icon-left {
+  position: absolute;
+  left: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+.input-field-toggle-btn {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color var(--transition-speed) var(--transition-timing);
+}
+
+.input-field-toggle-btn:hover {
+  color: var(--text-primary);
+}
+
+.input-field-has-error .input-field-element {
+  border-color: var(--text-primary);
+}
+
+.input-field-error-msg {
+  font-size: 12px;
+  color: var(--text-primary);
+  font-weight: 500;
+  margin-top: 2px;
+}
