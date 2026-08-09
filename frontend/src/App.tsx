@@ -13,14 +13,26 @@ export const App: React.FC = () => {
   const [authenticatedUser, setAuthenticatedUser] = useState<Omit<
     UserRecord,
     'password_hash'
-  > | null>(() => AuthService.getCurrentUser());
+  > | null>(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
-    const savedUser = AuthService.getCurrentUser();
-    if (savedUser) {
-      setAuthenticatedUser(savedUser);
-      setCurrentView('dashboard');
-    }
+    let isMounted = true;
+
+    AuthService.checkAuth()
+      .then(user => {
+        if (isMounted && user) {
+          setAuthenticatedUser(user);
+          setCurrentView('dashboard');
+        }
+      })
+      .finally(() => {
+        if (isMounted) setIsCheckingAuth(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleLoginSuccess = (user: Omit<UserRecord, 'password_hash'>) => {
@@ -28,11 +40,19 @@ export const App: React.FC = () => {
     setCurrentView('dashboard');
   };
 
-  const handleSignOut = () => {
-    AuthService.logout();
+  const handleSignOut = async () => {
+    await AuthService.logout();
     setAuthenticatedUser(null);
     setCurrentView('login');
   };
+
+  if (isCheckingAuth) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FAFAFA' }}>
+        <span style={{ fontSize: '13px', fontWeight: 600, color: '#6B7280' }}>Verifying session...</span>
+      </div>
+    );
+  }
 
   return (
     <div style={{ position: 'relative', width: '100%', minHeight: '100vh' }}>

@@ -79,7 +79,7 @@ const registerUser = async (req, res) => {
 };
 
 /**
- * Login existing user
+ * Login existing user and set HTTP-only cookie
  * POST /api/auth/login
  */
 const loginUser = async (req, res) => {
@@ -118,6 +118,14 @@ const loginUser = async (req, res) => {
       { expiresIn: '7d' }
     );
 
+    // Set Secure, HTTP-Only cookie for zero-localStorage security
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     const safeUser = user.toJSON();
 
     return res.status(200).json({
@@ -131,6 +139,56 @@ const loginUser = async (req, res) => {
       success: false,
       error: 'An unexpected server error occurred.',
     });
+  }
+};
+
+/**
+ * Verify current session and return authenticated user
+ * GET /api/auth/me
+ */
+const getMe = async (req, res) => {
+  try {
+    let token = req.cookies ? req.cookies.token : null;
+
+    if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (!token) {
+      return res.status(401).json({ success: false, error: 'Not authenticated' });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(401).json({ success: false, error: 'User session invalid' });
+    }
+
+    const safeUser = user.toJSON();
+    return res.status(200).json({
+      success: true,
+      user: safeUser,
+    });
+  } catch (error) {
+    return res.status(401).json({ success: false, error: 'Invalid or expired session' });
+  }
+};
+
+/**
+ * Logout user and clear HTTP-only cookie
+ * POST /api/auth/logout
+ */
+const logoutUser = async (req, res) => {
+  try {
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+    });
+    return res.status(200).json({ success: true, message: 'Logged out successfully' });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: 'Logout failed' });
   }
 };
 
@@ -198,5 +256,7 @@ const resetPassword = async (req, res) => {
 module.exports = {
   registerUser,
   loginUser,
+  getMe,
+  logoutUser,
   resetPassword,
 };

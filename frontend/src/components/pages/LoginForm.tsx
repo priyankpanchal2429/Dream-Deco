@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { User, Lock, LogIn } from 'lucide-react';
 import { InputField } from '../inputs/InputField';
 import { Button } from '../buttons/Button';
@@ -21,13 +21,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onNavigate, onSuccess }) =
   const [generalError, setGeneralError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const savedId = AuthService.getRememberedUserId();
-    if (savedId) {
-      setUserId(savedId);
-      setRememberMe(true);
-    }
-  }, []);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

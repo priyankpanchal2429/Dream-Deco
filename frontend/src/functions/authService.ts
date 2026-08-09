@@ -1,18 +1,15 @@
 import { ApiClient } from './apiClient';
 import type { ValidationResult, UserRecord } from '../types/auth';
 
-const REMEMBER_ME_KEY = 'dream_deco_remember_user_id';
-const TOKEN_KEY = 'dream_deco_auth_token';
-const USER_KEY = 'dream_deco_user_data';
-
 export class AuthService {
   /**
    * Login user with User ID and Password via Express backend API.
+   * Session is maintained via HTTP-Only Secure Cookies (Zero LocalStorage).
    */
   public static async login(
     userId: string,
     password: string,
-    rememberMe: boolean
+    _rememberMe?: boolean
   ): Promise<{ success: boolean; user?: Omit<UserRecord, 'password_hash'>; error?: string }> {
     const trimmedId = userId.trim();
     const trimmedPassword = password.trim();
@@ -31,7 +28,6 @@ export class AuthService {
       const response = await ApiClient.post<{
         success: boolean;
         user?: Omit<UserRecord, 'password_hash'>;
-        token?: string;
         error?: string;
       }>('/api/auth/login', {
         userId: trimmedId,
@@ -39,17 +35,6 @@ export class AuthService {
       });
 
       if (response.success && response.user) {
-        if (response.token) {
-          localStorage.setItem(TOKEN_KEY, response.token);
-        }
-        localStorage.setItem(USER_KEY, JSON.stringify(response.user));
-
-        if (rememberMe) {
-          localStorage.setItem(REMEMBER_ME_KEY, trimmedId);
-        } else {
-          localStorage.removeItem(REMEMBER_ME_KEY);
-        }
-
         return { success: true, user: response.user };
       }
 
@@ -117,30 +102,32 @@ export class AuthService {
   }
 
   /**
-   * Retrieves currently logged in user session from localStorage.
+   * Check authenticated session status with backend via HTTP-Only Cookies.
    */
-  public static getCurrentUser(): Omit<UserRecord, 'password_hash'> | null {
+  public static async checkAuth(): Promise<Omit<UserRecord, 'password_hash'> | null> {
     try {
-      const userStr = localStorage.getItem(USER_KEY);
-      if (!userStr) return null;
-      return JSON.parse(userStr);
+      const response = await ApiClient.get<{
+        success: boolean;
+        user?: Omit<UserRecord, 'password_hash'>;
+      }>('/api/auth/me');
+
+      if (response.success && response.user) {
+        return response.user;
+      }
+      return null;
     } catch {
       return null;
     }
   }
 
   /**
-   * Retrieves remembered User ID if rememberMe was set.
+   * Clears auth session on backend via HTTP-Only cookie removal.
    */
-  public static getRememberedUserId(): string {
-    return localStorage.getItem(REMEMBER_ME_KEY) || '';
-  }
-
-  /**
-   * Clears auth session on sign out.
-   */
-  public static logout(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+  public static async logout(): Promise<void> {
+    try {
+      await ApiClient.post('/api/auth/logout', {});
+    } catch {
+      // Session cleared locally
+    }
   }
 }

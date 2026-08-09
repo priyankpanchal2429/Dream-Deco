@@ -1,22 +1,15 @@
 /**
  * API Client
- * Centralized fetch wrapper with automatic retry logic for Render server cold starts.
+ * Centralized fetch wrapper with credentials enabled (HTTP-only cookie auth, zero localStorage).
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://dream-deco.onrender.com';
 
-console.log('[Dream Deco] API Base URL:', API_BASE_URL);
-
 export class ApiClient {
   private static getHeaders(): HeadersInit {
-    const headers: Record<string, string> = {
+    return {
       'Content-Type': 'application/json',
     };
-    const token = localStorage.getItem('dream_deco_auth_token');
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-    return headers;
   }
 
   /**
@@ -28,9 +21,14 @@ export class ApiClient {
     retries = 3,
     delayMs = 1500
   ): Promise<Response> {
+    const fetchOptions: RequestInit = {
+      ...options,
+      credentials: 'include',
+    };
+
     for (let attempt = 0; attempt < retries; attempt++) {
       try {
-        const response = await fetch(url, options);
+        const response = await fetch(url, fetchOptions);
         return response;
       } catch (err) {
         if (attempt === retries - 1) throw err;
