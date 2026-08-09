@@ -3,6 +3,7 @@ import type { ValidationResult, UserRecord } from '../types/auth';
 
 const REMEMBER_ME_KEY = 'dream_deco_remember_user_id';
 const TOKEN_KEY = 'dream_deco_auth_token';
+const USER_KEY = 'dream_deco_user_data';
 
 export class AuthService {
   /**
@@ -41,6 +42,7 @@ export class AuthService {
         if (response.token) {
           localStorage.setItem(TOKEN_KEY, response.token);
         }
+        localStorage.setItem(USER_KEY, JSON.stringify(response.user));
 
         if (rememberMe) {
           localStorage.setItem(REMEMBER_ME_KEY, trimmedId);
@@ -115,6 +117,19 @@ export class AuthService {
   }
 
   /**
+   * Retrieves currently logged in user session from localStorage.
+   */
+  public static getCurrentUser(): Omit<UserRecord, 'password_hash'> | null {
+    try {
+      const userStr = localStorage.getItem(USER_KEY);
+      if (!userStr) return null;
+      return JSON.parse(userStr);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Retrieves remembered User ID if rememberMe was set.
    */
   public static getRememberedUserId(): string {
@@ -126,5 +141,6 @@ export class AuthService {
    */
   public static logout(): void {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
   }
 }

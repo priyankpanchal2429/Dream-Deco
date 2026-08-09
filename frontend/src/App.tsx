@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthLayout } from './components/layout/AuthLayout';
 import { LoginForm } from './components/pages/LoginForm';
 import { RegisterForm } from './components/pages/RegisterForm';
 import { ForgotPasswordForm } from './components/pages/ForgotPasswordForm';
 import { AuthenticatedDashboard } from './components/pages/AuthenticatedDashboard';
+import { AuthService } from './functions/authService';
 import type { AuthView, UserRecord } from './types/auth';
 import './styles/globals.css';
 
@@ -12,7 +13,15 @@ export const App: React.FC = () => {
   const [authenticatedUser, setAuthenticatedUser] = useState<Omit<
     UserRecord,
     'password_hash'
-  > | null>(null);
+  > | null>(() => AuthService.getCurrentUser());
+
+  useEffect(() => {
+    const savedUser = AuthService.getCurrentUser();
+    if (savedUser) {
+      setAuthenticatedUser(savedUser);
+      setCurrentView('dashboard');
+    }
+  }, []);
 
   const handleLoginSuccess = (user: Omit<UserRecord, 'password_hash'>) => {
     setAuthenticatedUser(user);
@@ -20,6 +29,7 @@ export const App: React.FC = () => {
   };
 
   const handleSignOut = () => {
+    AuthService.logout();
     setAuthenticatedUser(null);
     setCurrentView('login');
   };
