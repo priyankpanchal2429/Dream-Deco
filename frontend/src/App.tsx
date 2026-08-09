@@ -4,6 +4,7 @@ import { LoginForm } from './components/pages/LoginForm';
 import { RegisterForm } from './components/pages/RegisterForm';
 import { ForgotPasswordForm } from './components/pages/ForgotPasswordForm';
 import { AuthenticatedDashboard } from './components/pages/AuthenticatedDashboard';
+import { Logo } from './components/layout/Logo';
 import { AuthService } from './functions/authService';
 import type { AuthView, UserRecord } from './types/auth';
 import './styles/globals.css';
@@ -16,14 +17,20 @@ export const App: React.FC = () => {
   > | null>(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
+  // Initialize and check authentication on application startup
   useEffect(() => {
     let isMounted = true;
 
     AuthService.checkAuth()
       .then(user => {
-        if (isMounted && user) {
-          setAuthenticatedUser(user);
-          setCurrentView('dashboard');
+        if (isMounted) {
+          if (user) {
+            setAuthenticatedUser(user);
+            setCurrentView('dashboard');
+          } else {
+            setAuthenticatedUser(null);
+            setCurrentView('login');
+          }
         }
       })
       .finally(() => {
@@ -46,11 +53,31 @@ export const App: React.FC = () => {
     setCurrentView('login');
   };
 
+  // 1. Loading state while checking authentication (Prevents login UI flicker)
   if (isCheckingAuth) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FAFAFA' }}>
-        <span style={{ fontSize: '13px', fontWeight: 600, color: '#6B7280' }}>Verifying session...</span>
+      <div className="auth-loading-screen">
+        <div className="auth-loading-box">
+          <Logo size={36} showWordmark={true} />
+          <div className="loading-spinner-bar"></div>
+          <span className="loading-text">Verifying secure session...</span>
+        </div>
       </div>
+    );
+  }
+
+  // 2. Protected Route Enforcement: If logged in, redirect away from auth forms to dashboard
+  const isPublicRoute = currentView === 'login' || currentView === 'register' || currentView === 'forgot-password';
+  if (authenticatedUser && isPublicRoute) {
+    return <AuthenticatedDashboard user={authenticatedUser} onSignOut={handleSignOut} />;
+  }
+
+  // 3. Protected Route Enforcement: If NOT logged in and on dashboard, redirect to login
+  if (!authenticatedUser && currentView === 'dashboard') {
+    return (
+      <AuthLayout>
+        <LoginForm onNavigate={setCurrentView} onSuccess={handleLoginSuccess} />
+      </AuthLayout>
     );
   }
 

@@ -1,19 +1,25 @@
 /**
  * API Client
- * Centralized fetch wrapper with credentials enabled (HTTP-only cookie auth, zero localStorage).
+ * Centralized fetch wrapper supporting dual-layer token auth (Authorization Bearer Header + HTTP-Only Cookie).
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://dream-deco.onrender.com';
+const TOKEN_KEY = 'dream_deco_jwt_token';
 
 export class ApiClient {
   private static getHeaders(): HeadersInit {
-    return {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
   }
 
   /**
-   * Fetch with automatic retry logic to handle server cold-starts smoothly.
+   * Fetch with automatic retry logic for Render server cold starts.
    */
   private static async fetchWithRetry(
     url: string,
@@ -23,6 +29,10 @@ export class ApiClient {
   ): Promise<Response> {
     const fetchOptions: RequestInit = {
       ...options,
+      headers: {
+        ...this.getHeaders(),
+        ...(options.headers || {}),
+      },
       credentials: 'include',
     };
 
@@ -43,7 +53,6 @@ export class ApiClient {
     try {
       const response = await this.fetchWithRetry(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
-        headers: this.getHeaders(),
         body: JSON.stringify(body),
       });
 
@@ -59,7 +68,6 @@ export class ApiClient {
     try {
       const response = await this.fetchWithRetry(`${API_BASE_URL}${endpoint}`, {
         method: 'GET',
-        headers: this.getHeaders(),
       });
 
       const data = await response.json();

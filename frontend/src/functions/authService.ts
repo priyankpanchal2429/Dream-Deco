@@ -1,10 +1,13 @@
 import { ApiClient } from './apiClient';
 import type { ValidationResult, UserRecord } from '../types/auth';
 
+const TOKEN_KEY = 'dream_deco_jwt_token';
+const USER_KEY = 'dream_deco_user_data';
+
 export class AuthService {
   /**
    * Login user with User ID and Password via Express backend API.
-   * Session is maintained via HTTP-Only Secure Cookies (Zero LocalStorage).
+   * Securely persists token and user session for seamless page refresh persistence.
    */
   public static async login(
     userId: string,
@@ -28,6 +31,7 @@ export class AuthService {
       const response = await ApiClient.post<{
         success: boolean;
         user?: Omit<UserRecord, 'password_hash'>;
+        token?: string;
         error?: string;
       }>('/api/auth/login', {
         userId: trimmedId,
@@ -35,6 +39,11 @@ export class AuthService {
       });
 
       if (response.success && response.user) {
+        if (response.token) {
+          localStorage.setItem(TOKEN_KEY, response.token);
+        }
+        localStorage.setItem(USER_KEY, JSON.stringify(response.user));
+
         return { success: true, user: response.user };
       }
 
@@ -102,9 +111,17 @@ export class AuthService {
   }
 
   /**
-   * Check authenticated session status with backend via HTTP-Only Cookies.
+   * Check authenticated session status with backend API.
+   * Restores user state automatically on startup/refresh without flickering login UI.
    */
   public static async checkAuth(): Promise<Omit<UserRecord, 'password_hash'> | null> {
+    const cachedToken = localStorage.getItem(TOKEN_KEY);
+    const cachedUser = localStorage.getItem(USER_KEY);
+
+    if (!cachedToken && !cachedUser) {
+      return null;
+    }
+
     try {
       const response = await ApiClient.get<{
         success: boolean;
@@ -112,22 +129,45 @@ export class AuthService {
       }>('/api/auth/me');
 
       if (response.success && response.user) {
+        localStorage.setItem(USER_KEY, JSON.stringify(response.user));
         return response.user;
       }
+
+      // Session expired or invalid on backend
+      this.clearSession();
       return null;
-    } catch {
+    } catch (err) {
+      // If offline/network glitch but valid cached user exists, fall back to cached session
+      if (cachedUser) {
+        try {
+          return JSON.parse(cachedUser);
+        } catch {
+          this.clearSession();
+          return null;
+        }
+      }
+      this.clearSession();
       return null;
     }
   }
 
   /**
-   * Clears auth session on backend via HTTP-Only cookie removal.
+   * Immediately clears local session storage.
+   */
+  public static clearSession(): void {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+  }
+
+  /**
+   * Clears auth session on backend and local storage on logout.
    */
   public static async logout(): Promise<void> {
+    this.clearSession();
     try {
       await ApiClient.post('/api/auth/logout', {});
     } catch {
-      // Session cleared locally
+      // Cleared locally
     }
   }
 }
