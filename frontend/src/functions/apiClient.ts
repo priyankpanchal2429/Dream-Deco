@@ -5,6 +5,8 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://dream-deco.onrender.com';
 
+console.log('[Dream Deco] API Base URL:', API_BASE_URL);
+
 export class ApiClient {
   private static getHeaders(): HeadersInit {
     const headers: Record<string, string> = {
