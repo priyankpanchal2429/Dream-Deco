@@ -26,11 +26,6 @@ export class ApiClient {
       });
 
       const data = await response.json();
-
-      if (!response.ok && !data.isValid && !data.error && !data.generalError) {
-        throw new Error(data.message || `HTTP Error ${response.status}`);
-      }
-
       return data as T;
     } catch (err: any) {
       console.error(`[API Error ${endpoint}]`, err);
