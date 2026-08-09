@@ -1,0 +1,110 @@
+/* Sidebar Component Styles */
+.dashboard-sidebar {
+  width: 240px;
+  background-color: var(--bg-color);
+  border-right: 1px solid var(--border-color);
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: calc(100vh - 64px);
+  flex-shrink: 0;
+}
+
+.sidebar-group-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.08em;
+  padding: 0 12px 10px 12px;
+  display: block;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-link {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.sidebar-link:hover {
+  color: var(--text-primary);
+  background-color: #F9FAFB;
+}
+
+.sidebar-link.active {
+  color: var(--text-primary);
+  background-color: #F3F4F6;
+  font-weight: 600;
+  border-color: var(--border-color);
+}
+
+/* Database Status Card */
+.sidebar-footer-card {
+  background-color: #FAFAFA;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-main);
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.db-status-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+}
+
+.db-status-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.db-status-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.db-status-subtitle {
+  font-size: 10.5px;
+  color: var(--text-secondary);
+}
+
+.db-status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #111111;
+}
+
+@media (max-width: 768px) {
+  .dashboard-sidebar {
+    display: none;
+  }
+}

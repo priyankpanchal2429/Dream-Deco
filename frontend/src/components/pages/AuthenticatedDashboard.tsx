@@ -1,133 +1,141 @@
-import React from 'react';
-import { LogIn, CircleCheck, KeyRound } from 'lucide-react';
-import { Button } from '../buttons/Button';
+import React, { useState } from 'react';
+import {
+  FolderKanban,
+  Maximize2,
+  Bookmark,
+  Database,
+} from 'lucide-react';
+import { Header } from '../layout/Header';
+import { Sidebar } from '../layout/Sidebar';
+import { MetricCard } from '../dashboard/MetricCard';
+import { ProjectsTable } from '../dashboard/ProjectsTable';
+import type { ProjectItem } from '../dashboard/ProjectsTable';
+import { TemplateGrid } from '../dashboard/TemplateGrid';
 import type { UserRecord } from '../../types/auth';
+import './AuthenticatedDashboard.css';
 
 interface AuthenticatedDashboardProps {
   user: Omit<UserRecord, 'password_hash'>;
   onSignOut: () => void;
 }
 
+const INITIAL_PROJECTS: ProjectItem[] = [
+  {
+    id: 'PRJ-1092',
+    name: 'Monochrome Living Room Concept',
+    roomType: 'Residential Living Room',
+    status: 'In Progress',
+    updatedAt: 'Just now',
+    rendersCount: 8,
+  },
+  {
+    id: 'PRJ-1088',
+    name: 'Executive Boardroom & Suite',
+    roomType: 'Commercial Office',
+    status: 'Completed',
+    updatedAt: '2 hours ago',
+    rendersCount: 16,
+  },
+  {
+    id: 'PRJ-1074',
+    name: 'Nordic Open Plan Kitchen',
+    roomType: 'Residential Kitchen',
+    status: 'In Progress',
+    updatedAt: 'Yesterday',
+    rendersCount: 5,
+  },
+  {
+    id: 'PRJ-1061',
+    name: 'Minimalist Loft Studio',
+    roomType: 'Penthouse Apartment',
+    status: 'Draft',
+    updatedAt: 'Aug 07, 2026',
+    rendersCount: 2,
+  },
+];
+
 export const AuthenticatedDashboard: React.FC<AuthenticatedDashboardProps> = ({
   user,
   onSignOut,
 }) => {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [projectsList, setProjectsList] = useState<ProjectItem[]>(INITIAL_PROJECTS);
+
+  const handleNewProject = () => {
+    const newId = `PRJ-${Math.floor(1000 + Math.random() * 9000)}`;
+    const newProj: ProjectItem = {
+      id: newId,
+      name: 'New Custom Room Design',
+      roomType: 'Custom Concept',
+      status: 'In Progress',
+      updatedAt: 'Just now',
+      rendersCount: 1,
+    };
+    setProjectsList(prev => [newProj, ...prev]);
+  };
+
   return (
-    <div className="auth-form-wrapper" style={{ width: '100%' }}>
-      <div
-        style={{
-          width: '48px',
-          height: '48px',
-          borderRadius: '50%',
-          backgroundColor: '#F3F4F6',
-          border: '1px solid var(--border-color)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          margin: '0 auto 16px',
-        }}
-      >
-        <CircleCheck size={24} strokeWidth={2} color="#111111" />
+    <div className="dashboard-container">
+      {/* Top Navigation Header */}
+      <Header
+        user={user}
+        onSignOut={onSignOut}
+        onNewProject={handleNewProject}
+      />
+
+      {/* Main Layout Area */}
+      <div className="dashboard-main-layout">
+        {/* Left Sidebar */}
+        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+
+        {/* Content Area */}
+        <main className="dashboard-content">
+          {/* Welcome Banner */}
+          <div className="content-welcome-banner">
+            <div>
+              <h2 className="welcome-title">Welcome back, {user.full_name}</h2>
+              <p className="welcome-subtitle">
+                Here is an overview of your interior design workspace and MongoDB Atlas data.
+              </p>
+            </div>
+          </div>
+
+          {/* 4 Stat Metric Cards */}
+          <div className="metrics-grid">
+            <MetricCard
+              title="Active Projects"
+              value={projectsList.length}
+              change="+2 this week"
+              icon={FolderKanban}
+            />
+            <MetricCard
+              title="3D Room Renderings"
+              value={31}
+              change="+14.2%"
+              icon={Maximize2}
+            />
+            <MetricCard
+              title="Saved Decor Items"
+              value={124}
+              change="Catalog"
+              isPositive={false}
+              icon={Bookmark}
+            />
+            <MetricCard
+              title="Database Node"
+              value="MongoDB"
+              change="Atlas Live"
+              icon={Database}
+            />
+          </div>
+
+          {/* Projects Table */}
+          <ProjectsTable projects={projectsList} />
+
+          {/* Room Templates Grid */}
+          <TemplateGrid />
+        </main>
       </div>
-
-      <h1 className="auth-title">Authentication Successful</h1>
-      <p className="auth-subtitle">Welcome to Dream Deco Enterprise Dashboard.</p>
-
-      {/* User Record Details Container */}
-      <div
-        style={{
-          width: '100%',
-          backgroundColor: '#FAFAFA',
-          border: '1px solid var(--border-color)',
-          borderRadius: 'var(--radius-main)',
-          padding: '16px 20px',
-          marginBottom: '24px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            fontSize: '13px',
-            borderBottom: '1px solid var(--border-color)',
-            paddingBottom: '8px',
-          }}
-        >
-          <span style={{ color: 'var(--text-secondary)' }}>Full Name</span>
-          <strong style={{ color: 'var(--text-primary)' }}>{user.full_name}</strong>
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            fontSize: '13px',
-            borderBottom: '1px solid var(--border-color)',
-            paddingBottom: '8px',
-          }}
-        >
-          <span style={{ color: 'var(--text-secondary)' }}>User ID</span>
-          <code
-            style={{
-              backgroundColor: '#E5E7EB',
-              padding: '2px 6px',
-              borderRadius: '4px',
-              fontSize: '12px',
-              color: '#111111',
-            }}
-          >
-            @{user.user_id}
-          </code>
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            fontSize: '13px',
-            borderBottom: '1px solid var(--border-color)',
-            paddingBottom: '8px',
-          }}
-        >
-          <span style={{ color: 'var(--text-secondary)' }}>Database ID</span>
-          <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
-            {user.id}
-          </span>
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            fontSize: '13px',
-          }}
-        >
-          <span style={{ color: 'var(--text-secondary)' }}>Password Security</span>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              fontSize: '11.5px',
-              fontWeight: 600,
-              color: '#111111',
-            }}
-          >
-            <KeyRound size={12} /> Hashed (Bcrypt)
-          </span>
-        </div>
-      </div>
-
-      <Button variant="primary" icon={LogIn} onClick={onSignOut}>
-        Sign Out
-      </Button>
     </div>
   );
 };
