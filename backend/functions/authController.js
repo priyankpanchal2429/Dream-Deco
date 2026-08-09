@@ -64,10 +64,16 @@ const registerUser = async (req, res) => {
     });
   } catch (error) {
     console.error('[Register Error]', error);
-    return res.status(500).json({
+    if (error.code === 11000 || (error.message && error.message.includes('E11000'))) {
+      return res.status(400).json({
+        isValid: false,
+        errors: { userId: 'User ID already exists' },
+      });
+    }
+    return res.status(400).json({
       isValid: false,
       errors: {},
-      generalError: 'Server error during account creation. Please try again.',
+      generalError: error.message || 'Error during account creation. Please check inputs.',
     });
   }
 };
@@ -90,7 +96,6 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Generic error message for security (prevent user enumeration)
     const user = await User.findOne({ user_id: trimmedId.toLowerCase() });
     if (!user) {
       return res.status(401).json({
@@ -107,7 +112,6 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Generate JWT token
     const token = jwt.sign(
       { id: user._id, user_id: user.user_id },
       JWT_SECRET,
@@ -160,7 +164,6 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ isValid: false, errors });
     }
 
-    // Match name and user_id in MongoDB
     const user = await User.findOne({
       user_id: trimmedId.toLowerCase(),
     });
@@ -173,7 +176,6 @@ const resetPassword = async (req, res) => {
       });
     }
 
-    // Hash new password and save
     const salt = await bcrypt.genSalt(10);
     user.password_hash = await bcrypt.hash(newPassword, salt);
     await user.save();

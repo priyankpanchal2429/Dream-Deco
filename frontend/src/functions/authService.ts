@@ -82,7 +82,7 @@ export class AuthService {
       return {
         isValid: false,
         errors: {},
-        generalError: 'Server error during registration. Please check inputs and try again.',
+        generalError: err.message || 'Server error during registration. Please check inputs and try again.',
       };
     }
   }
@@ -109,7 +109,7 @@ export class AuthService {
       return {
         isValid: false,
         errors: {},
-        generalError: 'Failed to update password. Please check your credentials.',
+        generalError: err.message || 'Failed to update password. Please check your credentials.',
       };
     }
   }
